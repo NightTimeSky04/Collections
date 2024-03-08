@@ -16,7 +16,7 @@ class Collectable:
 
     def __init__(self, string: str):
         """Parse a string with compatible formatting into a `Collectable`."""
-        input = string.strip().split('#')
+        input = string.split('#')
 
         # The first input is always name
         self.name = input[0]
@@ -77,12 +77,19 @@ def export_to_json(collection: dict, json_file_name: str):
     """Converts a collection to a format that can be stored in a JSON file, then saves it under the specified file name."""
 
     export_collection = {}
-    for collectable_name in collection:
-        export_collection[collectable_name] = collection[collectable_name].to_string(
-        )
+
+    for subcollection in collection:
+
+        export_subcollection = {}
+
+        for collectable_name in collection[subcollection]:
+            export_subcollection[collectable_name] = collection[subcollection][collectable_name].to_string(
+            )
+
+        export_collection[subcollection] = export_subcollection
 
     with open(json_file_name, "w") as export_filepath:
-        js.dump(export_collection, export_filepath)
+        js.dump(export_collection, export_filepath, indent=2)
 
 
 def import_from_json(json_file_name: str):
@@ -92,21 +99,28 @@ def import_from_json(json_file_name: str):
         import_collection = js.load(import_filepath)
 
     collection = {}
-    for collectable_name in import_collection:
-        collection[collectable_name] = Collectable(
-            import_collection[collectable_name])
+
+    for import_subcollection in import_collection:
+
+        subcollection = {}
+
+        for collectable_name in import_collection[import_subcollection]:
+            subcollection[collectable_name] = Collectable(
+                import_collection[import_subcollection][collectable_name])
+
+        collection[import_subcollection] = subcollection
 
     return collection
 
 
 # Standardised format for file names
-game = "Test Collection"
+game = "Test Collection 2"
 game_title = re.sub(' ', '-', game.lower())
 txt_file_name = f"{game_title}.txt"
 json_file_name = f"{game_title}.json"
 
-# Collection dict
-# TODO: Optional subcollection class to handle one layer of subcollections - name and dict
+
+# Get collection from file name
 
 # Load existing collection data from JSON file, or create a new collection from text file template
 if os.path.isfile(json_file_name):
@@ -122,10 +136,33 @@ else:
     # Dict to contain all collection information
     collection = {}
 
+    # Default subcollection
+    subcollection = {}
+    subcollection_name = "All"
+
     # Parse input into collection
     for collectable_details in collectables_input:
-        collectable = Collectable(collectable_details)
-        collection[collectable.get_name().lower()] = collectable
+        if collectable_details != "\n":  # Ignore empty lines in template
+            collectable_details = collectable_details.strip()  # Remove newline chars
+
+            # Identify subcollections
+            if re.match("\[.+\]", collectable_details):
+                if subcollection:
+                    collection[subcollection_name] = subcollection
+
+                subcollection = {}
+                subcollection_name = re.sub("\[|\]", "", collectable_details)
+
+            else:
+                collectable = Collectable(collectable_details)
+                collectable_name = collectable.get_name().lower()
+
+                subcollection[collectable_name] = collectable
+                print(
+                    f"Subcollection: {subcollection_name}\n   Collectable: {collectable_name}")
+
+    if subcollection:
+        collection[subcollection_name] = subcollection
 
     # Save as new JSON file
     export_to_json(collection, json_file_name)
@@ -144,40 +181,41 @@ def submit_item():
     # Track whether item appears in the collection
     is_not_in_collection = True
 
-    for collectable_name in collection:
+    for subcollection in collection:
+        for collectable_name in collection[subcollection]:
 
-        if item.lower() == collectable_name:
-            is_not_in_collection = False  # Item located in the collection
+            if item.lower() == collectable_name:
+                is_not_in_collection = False  # Item located in the collection
 
-            # Update collection and change display if a new collectable has been found
-            if not collection.get(collectable_name).is_found():
-                collection[collectable_name].find()
+                # Update collection and change display if a new collectable has been found
+                if not collection[subcollection][collectable_name].is_found():
+                    collection[subcollection][collectable_name].find()
 
-                # Inform user that a collectable has been found
-                lbl_output["text"] = f"Found {collection[collectable_name].get_name()}!\n"
+                    # Inform user that a collectable has been found
+                    lbl_output["text"] = f"Found {collection[subcollection][collectable_name].get_name()}!\n"
 
-                # Update collection display accordingly
-                collection_labels[collectable_name][0].config(
-                    text=collection[collectable_name].get_name())
-                # Only update description if a description is available
-                if collection[collectable_name].get_description() != "":
-                    collection_labels[collectable_name][1].config(
-                        text=collection[collectable_name].get_description())
+                    # Update collection display accordingly
+                    collection_labels[collectable_name][0].config(
+                        text=collection[subcollection][collectable_name].get_name())
+                    # Only update description if a description is available
+                    if collection[subcollection][collectable_name].get_description() != "":
+                        collection_labels[collectable_name][1].config(
+                            text=collection[subcollection][collectable_name].get_description())
 
-                # Save changes to collection
-                export_to_json(collection, json_file_name)
+                    # Save changes to collection
+                    export_to_json(collection, json_file_name)
 
-            # Prompt user if the collectable had been found previously
-            else:
-                lbl_output["text"] = f"{collection[collectable_name].get_name()} already found.\n"
+                # Prompt user if the collectable had been found previously
+                else:
+                    lbl_output["text"] = f"{collection[subcollection][collectable_name].get_name()} already found.\n"
 
-    # Prompt user if the item is not in the collection
-    if item != "":
-        if is_not_in_collection:
-            lbl_output["text"] = f"{item.title()} is not in the collection.\n"
+        # Prompt user if the item is not in the collection
+        if item != "":
+            if is_not_in_collection:
+                lbl_output["text"] = f"{item.title()} is not in the collection.\n"
 
-    # Remove user input, making space for a new submission
-    ent_user_input.delete(0, tk.END)
+        # Remove user input, making space for a new submission
+        ent_user_input.delete(0, tk.END)
 
 
 # GUI structure and contents
@@ -226,38 +264,43 @@ entry_index = 0
 collection_labels = {}
 
 # Display grid of collectables, concealing information until they have been found
-for collectable_name in collection:
+for subcollection in collection:
+    for collectable_name in collection[subcollection]:
 
-    display_name = ""  # Default to no text
-    display_text = collection[collectable_name].get_hint()  # Default to hint
+        display_name = ""  # Default to no text
+        # Default to hint
+        display_text = collection[subcollection][collectable_name].get_hint()
 
-    if (collection[collectable_name].is_found()):
-        display_name = collection[collectable_name].get_name()
-        display_text = collection[collectable_name].get_description()
+        if (collection[subcollection][collectable_name].is_found()):
+            display_name = collection[subcollection][collectable_name].get_name(
+            )
+            display_text = collection[subcollection][collectable_name].get_description(
+            )
 
-    # Frame for each collectable, contains widgets which display information
-    frm_collectable = tk.Frame(
-        master=frm_collection, borderwidth=4, relief=tk.RAISED)
+        # Frame for each collectable, contains widgets which display information
+        frm_collectable = tk.Frame(
+            master=frm_collection, borderwidth=4, relief=tk.RAISED)
 
-    # Position frame in grid according to number of columns and entry index
-    row_index = entry_index // column_count
-    column_index = entry_index % column_count
-    frm_collectable.grid(row=row_index, column=column_index)
+        # Position frame in grid according to number of columns and entry index
+        row_index = entry_index // column_count
+        column_index = entry_index % column_count
+        frm_collectable.grid(row=row_index, column=column_index)
 
-    # Label to display collectable name
-    lbl_collectable = tk.Label(
-        master=frm_collectable, text=display_name, width=50, relief=tk.GROOVE)
-    lbl_collectable.grid(row=0, column=0)
+        # Label to display collectable name
+        lbl_collectable = tk.Label(
+            master=frm_collectable, text=display_name, width=50, relief=tk.GROOVE)
+        lbl_collectable.grid(row=0, column=0)
 
-    # Label to display item description or hint
-    lbl_description = tk.Label(master=frm_collectable,
-                               text=display_text)
-    lbl_description.grid(row=1, column=0)
+        # Label to display item description or hint
+        lbl_description = tk.Label(master=frm_collectable,
+                                   text=display_text)
+        lbl_description.grid(row=1, column=0)
 
-    # Add labels to tracking
-    collection_labels[collectable_name] = (lbl_collectable, lbl_description)
+        # Add labels to tracking
+        collection_labels[collectable_name] = (
+            lbl_collectable, lbl_description)
 
-    entry_index += 1  # Update index tracker
+        entry_index += 1  # Update index tracker
 
 
 window.mainloop()
