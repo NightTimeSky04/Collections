@@ -21,14 +21,26 @@ class Collectable:
         # The first input is always name
         self.name = input[0]
 
-        # TODO: loop through inputs and assign them to attrs
-
-        # Parse found tag into a bool if present
+        # Parse found tag (always the last input) into a bool if present
         if input[-1] == ("found=True" or "found=False"):
             self.found = eval(input[-1][6:])
         else:
             # Collectables default to not found
             self.found = False
+
+        # All other attributes default to empty
+        self.hint = ""
+        self.description = ""
+
+        # Assign values to other attributes if present
+        if len(input) > 1:
+            for field in input[1:]:
+
+                if re.match("desc=.+", field):
+                    self.description = re.sub("desc=", "", field)
+
+                if re.match("hint=.+", field):
+                    self.hint = re.sub("hint=", "", field)
 
     def find(self):
         """Change a `Collectable's` `found` tag to `True`."""
@@ -37,12 +49,27 @@ class Collectable:
     def is_found(self):
         return self.found
 
+    def get_description(self):
+        return self.description
+
+    def get_hint(self):
+        return self.hint
+
     def get_name(self):
         return self.name
 
     def to_string(self):
         """Convert the information stored in a `Collectable` to a string."""
-        string = f"{self.name}#found={self.found}"
+        string = f"{self.name}"
+
+        if self.description != "":
+            string += f"#desc={self.description}"
+
+        if self.hint != "":
+            string += f"#hint={self.hint}"
+
+        string += f"#found={self.found}"
+
         return string
 
 
@@ -80,9 +107,8 @@ json_file_name = f"{game_title}.json"
 
 # Collection dict
 # TODO: Optional subcollection class to handle one layer of subcollections - name and dict
-# TODO: Collectable class to handle additional information, e.g. hints, image, description
 
-# Load existing collection data from JSON file, or create a new collection
+# Load existing collection data from JSON file, or create a new collection from text file template
 if os.path.isfile(json_file_name):
 
     collection = import_from_json(json_file_name)
@@ -129,8 +155,10 @@ def submit_item():
 
                 lbl_output["text"] = f"Found {collection[collectable_name].get_name()}!\n"
 
-                collection_labels[collectable_name].config(
+                collection_labels[collectable_name][0].config(
                     text=collection[collectable_name].get_name())
+                collection_labels[collectable_name][1].config(
+                    text=collection[collectable_name].get_description())
 
                 # Save changes to collection
                 export_to_json(collection, json_file_name)
@@ -196,9 +224,12 @@ collection_labels = {}
 # Display grid of collectables, concealing information until they have been found
 for collectable_name in collection:
 
-    display_text = ""  # Default to no text
+    display_name = ""  # Default to no text
+    display_text = collection[collectable_name].get_hint()  # Default to hint
+
     if (collection[collectable_name].is_found()):
-        display_text = collection[collectable_name].get_name()
+        display_name = collection[collectable_name].get_name()
+        display_text = collection[collectable_name].get_description()
 
     # Frame for each collectable, contains widgets which display information
     frm_collectable = tk.Frame(
@@ -211,16 +242,16 @@ for collectable_name in collection:
 
     # Label to display collectable name
     lbl_collectable = tk.Label(
-        master=frm_collectable, text=display_text, width=25, relief=tk.GROOVE)
+        master=frm_collectable, text=display_name, width=50, relief=tk.GROOVE)
     lbl_collectable.grid(row=0, column=0)
 
     # Label to display item description or hint
     lbl_description = tk.Label(master=frm_collectable,
-                               text="Hints/description here")
+                               text=display_text)
     lbl_description.grid(row=1, column=0)
 
     # Add labels to tracking
-    collection_labels[collectable_name] = lbl_collectable
+    collection_labels[collectable_name] = (lbl_collectable, lbl_description)
 
     entry_index += 1  # Update index tracker
 

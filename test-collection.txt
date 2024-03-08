@@ -1,10 +1,10 @@
-Hydrogen
-Helium
-Lithium
-Beryllium
-Boron
-Carbon
-Nitrogen
-Oxygen
-Fluorine
-Neon
+Hydrogen#desc=Hydrogen is the first element in the Periodic Table.#hint=The first element in the Periodic Table.
+Helium#desc=Helium is the second element in the Periodic Table.#hint=The second element in the Periodic Table.
+Lithium#desc=Lithium is the third element in the Periodic Table.#hint=The third element in the Periodic Table.
+Beryllium#desc=Beryllium is the fourth element in the Periodic Table.#hint=The fourth element in the Periodic Table.
+Boron#desc=Boron is the fifth element in the Periodic Table.#hint=The fifth element in the Periodic Table.
+Carbon#desc=Carbon is the sixth element in the Periodic Table.#hint=The sixth element in the Periodic Table.
+Nitrogen#desc=Nitrogen is the seventh element in the Periodic Table.#hint=The seventh element in the Periodic Table.
+Oxygen#desc=Oxygen is the eighth element in the Periodic Table.#hint=The eighth element in the Periodic Table.
+Fluorine#desc=Fluorine is the ninth element in the Periodic Table.#hint=The ninth element in the Periodic Table.
+Neon#desc=Neon is the tenth element in the Periodic Table.#hint=The tenth element in the Periodic Table.
