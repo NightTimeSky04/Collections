@@ -59,11 +59,13 @@ def submit_item():
         if item.lower() == collectable.lower():
             is_not_in_collection = False  # Item found in the collection
 
-            # Update collection and text output if a new collectable has been found
+            # Update collection, text output and diplay if a new collectable has been found
             if not collection.get(collectable):
+                collection[collectable] = True
+
                 lbl_output["text"] = f"Found {collectable}!\n"
 
-                collection[collectable] = True
+                collection_labels[collectable].config(text=collectable)
 
                 # Save changes to collection
                 with open(json_file_name, "w") as output_filepath:
@@ -74,8 +76,9 @@ def submit_item():
                 lbl_output["text"] = f"{collectable} already found.\n"
 
     # Prompt user if the item is not in the collection
-    if is_not_in_collection:
-        lbl_output["text"] = f"{item.title()} is not in the collection.\n"
+    if item != "":
+        if is_not_in_collection:
+            lbl_output["text"] = f"{item.title()} is not in the collection.\n"
 
     # Remove user input, making space for a new submission
     ent_user_input.delete(0, tk.END)
@@ -85,7 +88,8 @@ def submit_item():
 
 # Launch an instance of Tk
 window = tk.Tk()
-window.title("Collections for {game}")
+window.title(f"Collections for {game}")
+# window.geometry("1080x540")
 
 
 # Frame containing widgets for item submission
@@ -94,7 +98,7 @@ frm_submission.grid(row=0, column=0)
 
 # Label prompt to submit items
 lbl_item_submission = tk.Label(
-    master=frm_submission, text="Enter collected item here:")
+    master=frm_submission, text="Enter items here:")
 lbl_item_submission.grid(row=0, column=0, sticky="e")
 
 # Entry which takes item input
@@ -121,6 +125,8 @@ column_count = 4
 # Track position of collectables in list in order to determine row position in diplay
 entry_index = 0
 
+# Dict to contain label for each collectable
+collection_labels = {}
 
 # Display grid of collectables, concealing information until they have been found
 for collectable in collection:
@@ -147,6 +153,8 @@ for collectable in collection:
     lbl_description = tk.Label(master=frm_collectable,
                                text="Hints/description here")
     lbl_description.grid(row=1, column=0)
+
+    collection_labels[collectable] = lbl_collectable
 
     entry_index += 1  # Update index tracker
 
