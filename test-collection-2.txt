@@ -1,0 +1,23 @@
+[First Row]
+Hydrogen
+Helium
+
+[Second Row]
+Lithium
+Beryllium
+Boron
+Carbon
+Nitrogen
+Oxygen
+Fluorine
+Neon
+
+[Third Row]
+Sodium
+Magnesium
+Aluminium
+Silicon
+Phosphorus
+Sulfur
+Chlorine
+Argon
