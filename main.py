@@ -149,16 +149,20 @@ def submit_item():
         if item.lower() == collectable_name:
             is_not_in_collection = False  # Item located in the collection
 
-            # Update collection, text output and diplay if a new collectable has been found
+            # Update collection and change display if a new collectable has been found
             if not collection.get(collectable_name).is_found():
                 collection[collectable_name].find()
 
+                # Inform user that a collectable has been found
                 lbl_output["text"] = f"Found {collection[collectable_name].get_name()}!\n"
 
+                # Update collection display accordingly
                 collection_labels[collectable_name][0].config(
                     text=collection[collectable_name].get_name())
-                collection_labels[collectable_name][1].config(
-                    text=collection[collectable_name].get_description())
+                # Only update description if a description is available
+                if collection[collectable_name].get_description() != "":
+                    collection_labels[collectable_name][1].config(
+                        text=collection[collectable_name].get_description())
 
                 # Save changes to collection
                 export_to_json(collection, json_file_name)
