@@ -158,8 +158,6 @@ else:
                 collectable_name = collectable.get_name().lower()
 
                 subcollection[collectable_name] = collectable
-                print(
-                    f"Subcollection: {subcollection_name}\n   Collectable: {collectable_name}")
 
     if subcollection:
         collection[subcollection_name] = subcollection
@@ -250,57 +248,86 @@ lbl_output = tk.Label(master=frm_submission)
 lbl_output.grid(row=1, column=1, sticky="n")
 
 
-# Frame containing widgets which display the collection
+# Frame to contain widgets which display the collection
 frm_collection = tk.Frame(master=window)
 frm_collection.grid(row=1, column=0, padx=10, pady=10)
 
 
-# Number of columns in collection display
-column_count = 4
-# Track position of collectables in list in order to determine row position in diplay
-entry_index = 0
+# Count subcollections in order to determine row position in display
+subcollection_index = 0
+# Set max length in entries for columns within each subcollection
+max_column_length = 16
 
 # Dict to track labels for each collectable
 collection_labels = {}
 
 # Display grid of collectables, concealing information until they have been found
 for subcollection in collection:
+
+    # Frame for subcollection
+    frm_subcollection = tk.Frame(master=frm_collection)
+    frm_subcollection.grid(row=0, column=subcollection_index)
+
+    # If collectables do not belong to a subcollection, do not display a subcollection name
+    if subcollection == "All":
+        section_display_name = ""
+    else:
+        section_display_name = subcollection
+
+    # Subcollection title
+    lbl_subcollection = tk.Label(
+        master=frm_subcollection, text=section_display_name)
+    lbl_subcollection.grid(row=0, column=0)
+
+    # Frame to contain list of collectables in subcollection
+    frm_list = tk.Frame(master=frm_subcollection)
+    frm_list.grid(row=1, column=0)
+
+    # Track subcollection entry number for grid positioning reasons
+    entry_index = 0
+
     for collectable_name in collection[subcollection]:
 
-        display_name = ""  # Default to no text
-        # Default to hint
-        display_text = collection[subcollection][collectable_name].get_hint()
+        # Default name to hidden
+        collectable_display_name = ""
+        # Default text to hint
+        collectable_display_text = collection[subcollection][collectable_name].get_hint(
+        )
 
+        # Show name and description if found (and if description exists)
         if (collection[subcollection][collectable_name].is_found()):
-            display_name = collection[subcollection][collectable_name].get_name(
+            collectable_display_name = collection[subcollection][collectable_name].get_name(
             )
-            display_text = collection[subcollection][collectable_name].get_description(
-            )
+            if collection[subcollection][collectable_name].get_description():
+                collectable_display_text = collection[subcollection][collectable_name].get_description(
+                )
 
-        # Frame for each collectable, contains widgets which display information
+        # Frame for each collectable, contains widgets which display the information
         frm_collectable = tk.Frame(
-            master=frm_collection, borderwidth=4, relief=tk.RAISED)
+            master=frm_list, borderwidth=4, relief=tk.RAISED)
 
-        # Position frame in grid according to number of columns and entry index
-        row_index = entry_index // column_count
-        column_index = entry_index % column_count
+        # Position frame in subcollection grid
+        row_index = (entry_index) % max_column_length
+        column_index = (entry_index) // max_column_length
         frm_collectable.grid(row=row_index, column=column_index)
 
         # Label to display collectable name
         lbl_collectable = tk.Label(
-            master=frm_collectable, text=display_name, width=50, relief=tk.GROOVE)
+            master=frm_collectable, text=collectable_display_name, width=50, relief=tk.GROOVE)
         lbl_collectable.grid(row=0, column=0)
 
         # Label to display item description or hint
         lbl_description = tk.Label(master=frm_collectable,
-                                   text=display_text)
+                                   text=collectable_display_text)
         lbl_description.grid(row=1, column=0)
 
-        # Add labels to tracking
+        # Track labels which will require updates
         collection_labels[collectable_name] = (
             lbl_collectable, lbl_description)
 
-        entry_index += 1  # Update index tracker
+        entry_index += 1
+
+    subcollection_index += 1
 
 
 window.mainloop()
