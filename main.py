@@ -113,14 +113,11 @@ def import_from_json(json_file_name: str):
     return collection
 
 
-# Standardised format for file names
-game = "Test Collection 2"
-game_title = re.sub(' ', '-', game.lower())
-txt_file_name = f"{game_title}.txt"
+# File names etc.
+game_name = "Test Collection 2"
+game_title = re.sub(' ', '-', game_name.lower())
 json_file_name = f"{game_title}.json"
 
-
-# Get collection from file name
 
 # Load existing collection data from JSON file, or create a new collection from text file template
 if os.path.isfile(json_file_name):
@@ -129,8 +126,11 @@ if os.path.isfile(json_file_name):
 
 else:
 
+    # Template used to generate new collection
+    template_file_name = "test-collection-2.txt"
+
     # Read from input file
-    with open(txt_file_name) as collection_input:
+    with open(template_file_name) as collection_input:
         collectables_input = collection_input.readlines()
 
     # Dict to contain all collection information
@@ -220,7 +220,7 @@ def submit_item():
 
 # Launch an instance of Tk
 window = tk.Tk()
-window.title(f"Collections for {game}")
+window.title(f"Collections for {game_name}")
 # window.geometry("1080x540")
 
 
@@ -236,6 +236,7 @@ lbl_item_submission.grid(row=0, column=0, sticky="e")
 # Entry which takes item input
 ent_user_input = tk.Entry(master=frm_submission, width=50)
 ent_user_input.grid(row=0, column=1, sticky="w")
+ent_user_input.bind("<Return>", (lambda event: submit_item()))
 
 # Submission button which calls submit_item
 # TODO: add enter as a submission button shortcut

@@ -3,3 +3,6 @@
 
 # Ignore test script
 test.py
+
+# Ignore templates
+templates/
