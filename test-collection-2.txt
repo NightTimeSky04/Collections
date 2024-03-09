@@ -1,6 +1,6 @@
 [First Row]
-Hydrogen
-Helium
+Hydrogen#ph_name=H#hint=First element in the Periodic Table
+Helium#ph_name=He#hint=Second element, atomic mass 4
 
 [Second Row]
 Lithium

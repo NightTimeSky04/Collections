@@ -31,6 +31,7 @@ class Collectable:
         # All other attributes default to empty
         self.hint = ""
         self.description = ""
+        self.placeholder_name = ""
 
         # Assign values to other attributes if present
         if len(input) > 1:
@@ -41,6 +42,9 @@ class Collectable:
 
                 if re.match("hint=.+", field):
                     self.hint = re.sub("hint=", "", field)
+
+                if re.match("ph_name=.+", field):
+                    self.placeholder_name = re.sub("ph_name=", "", field)
 
     def find(self):
         """Change a `Collectable's` `found` tag to `True`."""
@@ -58,16 +62,26 @@ class Collectable:
     def get_name(self):
         return self.name
 
+    def get_placeholder(self):
+        return self.placeholder_name
+
     def to_string(self):
         """Convert the information stored in a `Collectable` to a string."""
+
+        # Name always appears at the start of the string
         string = f"{self.name}"
 
-        if self.description != "":
+        # Add description, hint and placeholder name if given
+        if self.description:
             string += f"#desc={self.description}"
 
-        if self.hint != "":
+        if self.hint:
             string += f"#hint={self.hint}"
 
+        if self.placeholder_name:
+            string += f"#ph_name={self.placeholder_name}"
+
+        # Found tag always appears at the end of the string
         string += f"#found={self.found}"
 
         return string
@@ -142,8 +156,8 @@ else:
 
     # Parse input into collection
     for collectable_details in collectables_input:
-        if collectable_details != "\n":  # Ignore empty lines in template
-            collectable_details = collectable_details.strip()  # Remove newline chars
+        collectable_details = collectable_details.strip()  # Remove newline chars
+        if collectable_details:  # Ignore empty lines in template
 
             # Identify subcollections
             if re.match("\[.+\]", collectable_details):
@@ -193,10 +207,17 @@ def submit_item():
                     lbl_output["text"] = f"Found {collection[subcollection][collectable_name].get_name()}!\n"
 
                     # Update collection display accordingly
+                    if collection[subcollection][collectable_name].get_placeholder():
+                        name_label_update = f"{collection[subcollection][collectable_name].get_name()} ({collection[subcollection][collectable_name].get_placeholder()})"
+                    else:
+                        name_label_update = collection[subcollection][collectable_name].get_name(
+                        )
+
                     collection_labels[collectable_name][0].config(
-                        text=collection[subcollection][collectable_name].get_name())
+                        text=name_label_update)
+
                     # Only update description if a description is available
-                    if collection[subcollection][collectable_name].get_description() != "":
+                    if collection[subcollection][collectable_name].get_description():
                         collection_labels[collectable_name][1].config(
                             text=collection[subcollection][collectable_name].get_description())
 
@@ -208,7 +229,7 @@ def submit_item():
                     lbl_output["text"] = f"{collection[subcollection][collectable_name].get_name()} already found.\n"
 
         # Prompt user if the item is not in the collection
-        if item != "":
+        if item:
             if is_not_in_collection:
                 lbl_output["text"] = f"{item.title()} is not in the collection.\n"
 
@@ -289,16 +310,24 @@ for subcollection in collection:
 
     for collectable_name in collection[subcollection]:
 
-        # Default name to hidden
-        collectable_display_name = ""
+        # Default name to hidden, or placeholder name if available
+        if collection[subcollection][collectable_name].get_placeholder():
+            collectable_display_name = collection[subcollection][collectable_name].get_placeholder(
+            )
+        else:
+            collectable_display_name = ""
+
         # Default text to hint
         collectable_display_text = collection[subcollection][collectable_name].get_hint(
         )
 
         # Show name and description if found (and if description exists)
         if (collection[subcollection][collectable_name].is_found()):
-            collectable_display_name = collection[subcollection][collectable_name].get_name(
-            )
+            if collection[subcollection][collectable_name].get_placeholder():
+                collectable_display_name = f"{collection[subcollection][collectable_name].get_name()} ({collection[subcollection][collectable_name].get_placeholder()})"
+            else:
+                collectable_display_name = collection[subcollection][collectable_name].get_name(
+                )
             if collection[subcollection][collectable_name].get_description():
                 collectable_display_text = collection[subcollection][collectable_name].get_description(
                 )
