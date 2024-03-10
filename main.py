@@ -11,6 +11,10 @@ import json as js
 import tkinter as tk
 
 
+# TODO: Tidy program structure
+# TODO: Basic error handling
+
+
 class Collectable:
     """Defines an object containing all the information that may be provided for a collectable item. Enables conversion to and from a string."""
 
@@ -40,10 +44,10 @@ class Collectable:
                 if re.match("desc=.+", field):
                     self.description = re.sub("desc=", "", field)
 
-                if re.match("hint=.+", field):
+                elif re.match("hint=.+", field):
                     self.hint = re.sub("hint=", "", field)
 
-                if re.match("ph_name=.+", field):
+                elif re.match("ph_name=.+", field):
                     self.placeholder_name = re.sub("ph_name=", "", field)
 
     def find(self):
@@ -127,57 +131,104 @@ def import_from_json(json_file_name: str):
     return collection
 
 
-# File names etc.
-game_name = "Test Collection 2"
-game_title = re.sub(' ', '-', game_name.lower())
-json_file_name = f"{game_title}.json"
-
-
 # Load existing collection data from JSON file, or create a new collection from text file template
-if os.path.isfile(json_file_name):
+while True:
+    # User decides whether to load an existing collection
+    load = input("Load existing collection? (y/n): ")
 
-    collection = import_from_json(json_file_name)
+    if load.lower() == "y":
 
-else:
+        # User specifies file to load
+        json_file_name = input("Load file: ")
 
-    # Template used to generate new collection
-    template_file_name = "test-collection-2.txt"
+        if not re.match(".+\.json", json_file_name):
+            json_file_name += ".json"
 
-    # Read from input file
-    with open(template_file_name) as collection_input:
-        collectables_input = collection_input.readlines()
+        # TODO: File paths
 
-    # Dict to contain all collection information
-    collection = {}
+        try:
+            collection = import_from_json(json_file_name)
+        except OSError:
+            print(f"\"{json_file_name}\" not found.")
+            exit(1)
 
-    # Default subcollection
-    subcollection = {}
-    subcollection_name = "All"
+        break
 
-    # Parse input into collection
-    for collectable_details in collectables_input:
-        collectable_details = collectable_details.strip()  # Remove newline chars
-        if collectable_details:  # Ignore empty lines in template
+    elif load.lower() == "n":
 
-            # Identify subcollections
-            if re.match("\[.+\]", collectable_details):
-                if subcollection:
-                    collection[subcollection_name] = subcollection
+        print("Creating new collection...")
 
-                subcollection = {}
-                subcollection_name = re.sub("\[|\]", "", collectable_details)
+        # User specifies template file to use
+        template_file_name = input("Template file: ")
 
-            else:
-                collectable = Collectable(collectable_details)
-                collectable_name = collectable.get_name().lower()
+        while True:
+            # (Optional) user may specify collection file name
+            specify_file_name = input(
+                "Specify new collection file name? (y/n): ")
 
-                subcollection[collectable_name] = collectable
+            if specify_file_name.lower() == "y":
+                json_file_name = input("New save file: ")
 
-    if subcollection:
-        collection[subcollection_name] = subcollection
+                # TODO: Check if valid file name + corrections?
+                # TODO: Check if file already exists
+                # TODO: File paths
 
-    # Save as new JSON file
-    export_to_json(collection, json_file_name)
+                print(f"Using save file name {json_file_name}")
+
+                break
+
+            elif specify_file_name.lower() == "n":
+                # File name defaults to match template file
+                json_file_name = re.sub('.txt', '.json', template_file_name)
+
+                print(f"Using save file name {json_file_name}")
+
+                break
+
+        # Convert template into collection dict
+        try:
+            # Read from input file
+            with open(template_file_name) as collection_input:
+                collectables_input = collection_input.readlines()
+
+            # Dict to contain all collection information
+            collection = {}
+
+            # Default subcollection
+            subcollection = {}
+            subcollection_name = "All"
+
+            # Parse input into collection
+            for collectable_details in collectables_input:
+                collectable_details = collectable_details.strip()  # Remove newline chars
+                if collectable_details:  # Ignore empty lines in template
+
+                    # Identify subcollections
+                    if re.match("\[.+\]", collectable_details):
+                        if subcollection:
+                            collection[subcollection_name] = subcollection
+
+                        subcollection = {}
+                        subcollection_name = re.sub(
+                            "\[|\]", "", collectable_details)
+
+                    else:
+                        collectable = Collectable(collectable_details)
+                        collectable_name = collectable.get_name().lower()
+
+                        subcollection[collectable_name] = collectable
+
+            if subcollection:
+                collection[subcollection_name] = subcollection
+
+            # Save as new JSON file
+            export_to_json(collection, json_file_name)
+
+        except OSError:
+            print(f"\nTemplate file \"{template_file_name}\" not found.")
+            exit(1)
+
+        break
 
 
 # UI takes a user input as items are found, and updates the display of which collectables have been found
@@ -238,10 +289,12 @@ def submit_item():
 
 
 # GUI structure and contents
+# TODO: Tidy up UI: scaling, formatting, colour, etc.
 
 # Launch an instance of Tk
 window = tk.Tk()
-window.title(f"Collections for {game_name}")
+# TODO: Change window title
+window.title(f"Collections ({json_file_name})")
 # window.geometry("1080x540")
 
 
@@ -257,10 +310,11 @@ lbl_item_submission.grid(row=0, column=0, sticky="e")
 # Entry which takes item input
 ent_user_input = tk.Entry(master=frm_submission, width=50)
 ent_user_input.grid(row=0, column=1, sticky="w")
+
+# Bind `Enter` to item submission
 ent_user_input.bind("<Return>", (lambda event: submit_item()))
 
 # Submission button which calls submit_item
-# TODO: add enter as a submission button shortcut
 btn_submit = tk.Button(master=frm_submission,
                        text="submit", command=submit_item)
 btn_submit.grid(row=0, column=3)

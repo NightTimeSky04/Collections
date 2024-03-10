@@ -4,5 +4,6 @@
 # Ignore test script
 test.py
 
-# Ignore templates
+# Ignore templates and saves
 templates/
+saves/
