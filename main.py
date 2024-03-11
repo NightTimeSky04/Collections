@@ -131,6 +131,43 @@ def import_from_json(json_file_name: str):
     return collection
 
 
+def specify_save_file_name():
+    # Take user input and attempt to construct a valid file name
+    save_file_name = input("New save file: ")
+
+    # Replace any spaces or underscores
+    save_file_name = re.sub(" |_", "-", save_file_name)
+
+    # Remove any file extensions
+    save_file_name = re.sub("\..+", "", save_file_name)
+
+    # Add chars provided to file name if they are alphanumeric or '-'
+    json_file_name = ""
+    for char in save_file_name:
+        if char.isalnum() or char == '-':
+            json_file_name += char
+
+    # Add file extension
+    json_file_name += ".json"
+
+    # TODO: File paths
+
+    # Check if a file using this name already exists
+    return check_for_preexisting_file(json_file_name)
+
+
+def check_for_preexisting_file(json_file_name):
+    if not os.path.isfile(json_file_name):
+        print(f"Using save file name {json_file_name}")
+
+        return json_file_name
+
+    else:
+        print(
+            f"\nFile \"{json_file_name}\" already exists.\nPlease specify a different file name.\n")
+        return specify_save_file_name()
+
+
 # Load existing collection data from JSON file, or create a new collection from text file template
 while True:
     # User decides whether to load an existing collection
@@ -161,52 +198,19 @@ while True:
         # User specifies template file to use
         template_file_name = input("\nTemplate file: ")
 
-        while True:
-            # (Optional) user may specify collection file name
-            specify_file_name = input(
-                "Specify new collection file name? (y/n): ")
+        # (Optional) user may specify collection file name
+        specify_file_name = input(
+            "Specify new collection file name? (y/n): ")
 
-            if specify_file_name.lower() == "y":
+        if specify_file_name.lower() == "y":
+            json_file_name = specify_save_file_name()
 
-                # Take user input and attempt to construct a valid file name
-                save_file_name = input("New save file: ")
-                # Replace any spaces or underscores
-                save_file_name = re.sub(" |_", "-", save_file_name)
-                # Remove any file extensions
-                save_file_name = re.sub("\..+", "", save_file_name)
+        elif specify_file_name.lower() == "n":
+            # File name defaults to match template file
+            json_file_name = re.sub('.txt', '.json', template_file_name)
 
-                # Add chars provided to file name if they are alphanumeric or '-'
-                json_file_name = ""
-                for char in save_file_name:
-                    if char.isalnum() or char == '-':
-                        json_file_name += char
-
-                # Add file extension
-                json_file_name += ".json"
-
-                # TODO: File paths
-
-                # Check if a file using this name already exists
-                if not os.path.isfile(json_file_name):
-                    print(f"Using save file name {json_file_name}")
-
-                    break
-                else:
-                    print(
-                        f"\nFile \"{json_file_name}\" already exists.\nPlease specify a different file name.\n")
-
-            elif specify_file_name.lower() == "n":
-                # File name defaults to match template file
-                json_file_name = re.sub('.txt', '.json', template_file_name)
-
-                # Check if a file using this name already exists
-                if not os.path.isfile(json_file_name):
-                    print(f"Using save file name {json_file_name}")
-
-                    break
-                else:
-                    print(
-                        f"\nFile \"{json_file_name}\" already exists.\nPlease specify a different file name.\n")
+            # Check if a file using this name already exists
+            json_file_name = check_for_preexisting_file(json_file_name)
 
         # Convert template into collection dict
         try:
@@ -316,10 +320,11 @@ def submit_item():
 
 # Launch an instance of Tk
 window = tk.Tk()
-# TODO: Change window title
-window.title(f"Collections ({json_file_name})")
-# window.geometry("1080x540")
 
+# Use save file name without extension in the window title
+file_name = re.sub("\.json", "", json_file_name)
+window.title(f"Collections ({file_name})")
+# window.geometry("1080x540")
 
 # Frame containing widgets for item submission
 frm_submission = tk.Frame(master=window)
