@@ -156,10 +156,10 @@ while True:
 
     elif load.lower() == "n":
 
-        print("Creating new collection...")
+        print("\nCreating new collection...")
 
         # User specifies template file to use
-        template_file_name = input("Template file: ")
+        template_file_name = input("\nTemplate file: ")
 
         while True:
             # (Optional) user may specify collection file name
@@ -167,23 +167,46 @@ while True:
                 "Specify new collection file name? (y/n): ")
 
             if specify_file_name.lower() == "y":
-                json_file_name = input("New save file: ")
 
-                # TODO: Check if valid file name + corrections?
-                # TODO: Check if file already exists
+                # Take user input and attempt to construct a valid file name
+                save_file_name = input("New save file: ")
+                # Replace any spaces or underscores
+                save_file_name = re.sub(" |_", "-", save_file_name)
+                # Remove any file extensions
+                save_file_name = re.sub("\..+", "", save_file_name)
+
+                # Add chars provided to file name if they are alphanumeric or '-'
+                json_file_name = ""
+                for char in save_file_name:
+                    if char.isalnum() or char == '-':
+                        json_file_name += char
+
+                # Add file extension
+                json_file_name += ".json"
+
                 # TODO: File paths
 
-                print(f"Using save file name {json_file_name}")
+                # Check if a file using this name already exists
+                if not os.path.isfile(json_file_name):
+                    print(f"Using save file name {json_file_name}")
 
-                break
+                    break
+                else:
+                    print(
+                        f"\nFile \"{json_file_name}\" already exists.\nPlease specify a different file name.\n")
 
             elif specify_file_name.lower() == "n":
                 # File name defaults to match template file
                 json_file_name = re.sub('.txt', '.json', template_file_name)
 
-                print(f"Using save file name {json_file_name}")
+                # Check if a file using this name already exists
+                if not os.path.isfile(json_file_name):
+                    print(f"Using save file name {json_file_name}")
 
-                break
+                    break
+                else:
+                    print(
+                        f"\nFile \"{json_file_name}\" already exists.\nPlease specify a different file name.\n")
 
         # Convert template into collection dict
         try:
