@@ -94,18 +94,18 @@ class Collectable:
 def export_to_json(collection: dict, json_file_name: str):
     """Converts a collection to a format that can be stored in a JSON file, then saves it under the specified file name."""
 
+    # Create temporary dicts to hold modified collection data
     export_collection = {}
-
     for subcollection in collection:
-
         export_subcollection = {}
 
+        # Convert each Collectable object to a string and add it to the temporary dictionary structure
         for collectable_name in collection[subcollection]:
             export_subcollection[collectable_name] = collection[subcollection][collectable_name].to_string(
             )
-
         export_collection[subcollection] = export_subcollection
 
+    # Dump the modified collection to a JSON file
     with open(json_file_name, "w") as export_filepath:
         js.dump(export_collection, export_filepath, indent=2)
 
@@ -113,32 +113,33 @@ def export_to_json(collection: dict, json_file_name: str):
 def import_from_json(json_file_name: str):
     """Loads a collection from a JSON file, then parses the save formatting back into Collectable objects."""
 
+    # Load collection containing collectable info in string format
     with open(json_file_name) as import_filepath:
         import_collection = js.load(import_filepath)
 
+    # Dictionary structure to contain Collectable objects
     collection = {}
-
     for import_subcollection in import_collection:
-
         subcollection = {}
 
+        # Produce Collectable objects from the imported strings and add them to the dict structure
         for collectable_name in import_collection[import_subcollection]:
             subcollection[collectable_name] = Collectable(
                 import_collection[import_subcollection][collectable_name])
-
         collection[import_subcollection] = subcollection
 
+    # Return the rebuilt collection
     return collection
 
 
 def specify_save_file_name():
+    """Request a user input to use as a save file name and process that input into a file name that is guaranteed to be valid. Returns a call to `check_for_preexisting_file()`."""
+
     # Take user input and attempt to construct a valid file name
     save_file_name = input("New save file: ")
 
-    # Replace any spaces or underscores
+    # Replace any spaces or underscores and remove any file extensions
     save_file_name = re.sub(" |_", "-", save_file_name)
-
-    # Remove any file extensions
     save_file_name = re.sub("\..+", "", save_file_name)
 
     # Add chars provided to file name if they are alphanumeric or '-'
@@ -156,7 +157,9 @@ def specify_save_file_name():
     return check_for_preexisting_file(json_file_name)
 
 
-def check_for_preexisting_file(json_file_name):
+def check_for_preexisting_file(json_file_name: str):
+    """Check if a file with the specified name already exists. Returns the file name if no such file exists, or a call to `specify_save_file_name()` if it does."""
+
     if not os.path.isfile(json_file_name):
         print(f"Using save file name {json_file_name}")
 
@@ -168,12 +171,18 @@ def check_for_preexisting_file(json_file_name):
         return specify_save_file_name()
 
 
-# Load existing collection data from JSON file, or create a new collection from text file template
+def check_file_exists():
+    # TODO: write a recursive function for loading files, which checks whether the file exists
+    pass
+
+
+# Decision tree enabling user to load an existing collection, or create a new collection from a template
 while True:
     # User decides whether to load an existing collection
     load = input("Load existing collection? (y/n): ")
 
     if load.lower() == "y":
+        # TODO: implement check_file_exists()
 
         # User specifies file to load
         json_file_name = input("Load file: ")
@@ -195,10 +204,12 @@ while True:
 
         print("\nCreating new collection...")
 
+        # TODO: implement check_file_exists()
+
         # User specifies template file to use
         template_file_name = input("\nTemplate file: ")
 
-        # (Optional) user may specify collection file name
+        # User may specify collection file name if desired
         specify_file_name = input(
             "Specify new collection file name? (y/n): ")
 
@@ -213,6 +224,7 @@ while True:
             json_file_name = check_for_preexisting_file(json_file_name)
 
         # Convert template into collection dict
+        # TODO: remove this to a function
         try:
             # Read from input file
             with open(template_file_name) as collection_input:
